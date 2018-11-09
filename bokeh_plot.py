@@ -1,4 +1,4 @@
-#!/usr/bin/env python 
+#!/usr/bin/env python
 
 __version__ ="0.5"
 import subprocess
@@ -14,7 +14,8 @@ from bokeh.models        import ColumnDataSource, HoverTool, CustomJS, TapTool, 
 from bokeh.models.widgets import DataTable, TableColumn, NumberFormatter, BooleanFormatter, CheckboxEditor
 from bokeh.models.widgets import Tabs, Panel, Select
 from bokeh.document      import Document
-from bokeh.plotting      import figure, gridplot, output_file, show, hplot, vplot
+from bokeh.plotting      import figure, gridplot, output_file, show
+from bokeh.layouts import row, column
 from scipy.stats         import scoreatpercentile
 from bokeh.models.glyphs import ImageURL
 
@@ -53,7 +54,7 @@ ICAmap_default_path = outputDir + '/Report_Figures/' + 'AxSagCor_Component_XX.pn
 for i in range(comp_timeseries.shape[1]):
     fft = abs(np.fft.fft(comp_timeseries[:,i]))
     comp_ffts[:,i] = np.fft.fftshift(fft)
-    
+
 freq      = np.fft.fftfreq(comp_timeseries.shape[0],float(TR[:-2]))
 freq      = np.fft.fftshift(freq)
 freq_axis = freq[np.where(freq == 0)[0][0]:][::-1]
@@ -139,10 +140,10 @@ component_color                = [component_colormap[str(x)] for x in fica_psel]
 component_status_labels        = { "3.0" : "Accepted", "2.0" : "Ignored",  "1.0" : "Middle Kappa", "0.0" : "Rejected"}
 component_status               = [component_status_labels[str(x)] for x in fica_psel]
 
-Source = ColumnDataSource(data = dict(cID = cID, 
-				      kappa = kappa, loc_by_kappa = loc_by_kappa, 
-			 	      rho = rho, loc_by_rho = loc_by_rho, 
-				      var = var, loc_by_var = loc_by_var, 
+Source = ColumnDataSource(data = dict(cID = cID,
+				      kappa = kappa, loc_by_kappa = loc_by_kappa,
+			 	      rho = rho, loc_by_rho = loc_by_rho,
+				      var = var, loc_by_var = loc_by_var,
 				      comp_color  = component_color,
 				      comp_status = component_status,
 				      ratio = ratio, loc_by_ratio = loc_by_ratio))
@@ -194,7 +195,7 @@ sp_kappa.yaxis.axis_label_text_font_size = "12pt"
 sp_tab_kappa  = Panel(child=sp_kappa,  title='Sorted by Kappa')
 sp_tab_legend = Panel(child=sp_legend, title='Legend')
 sp_tabs_kappa = Tabs(tabs=[sp_tab_kappa,sp_tab_legend])
- 
+
 sp_rho   = figure(tools=[TOOLS, HoverRho],width=325, height=250, y_axis_label='Rho', toolbar_location=None,x_range=sp_kappa.x_range)
 sp_rho.circle('loc_by_rho','rho',size=5,color='comp_color',source=Source)
 sp_rho.yaxis.axis_label_text_font_size = "12pt"
@@ -234,11 +235,11 @@ default_fft_y = np.zeros((Nt,))
 
 # Generate Plots
 # ==============
-sp_ts = figure(tools=[],toolbar_location=None, width=680,height=200, x_axis_label='Time [TR]', 
+sp_ts = figure(tools=[],toolbar_location=None, width=680,height=200, x_axis_label='Time [TR]',
                title='Component Timeseries',x_range=(0,Nt), title_text_font_size='12pt')
 sp_ts.xaxis.axis_label_text_font_size = "12pt"
 
-sp_fft = figure(tools=[],toolbar_location=None, width=680,height=200, x_axis_label='Frequency', 
+sp_fft = figure(tools=[],toolbar_location=None, width=680,height=200, x_axis_label='Frequency',
                 title='Component Spectrum',x_range=(min(default_fft_x), max(default_fft_x)), title_text_font_size='12pt')
 sp_fft.xaxis.axis_label_text_font_size = "12pt"
 
@@ -270,16 +271,16 @@ ICAmapFigure.outline_line_color='#ffffff'
 
 # ==============================================================================
 #                   JAVA SCRIPT INTERACTIVITY
- 
-update_ts = CustomJS(args=dict(timeseries_to_display=timeseries_to_display, 
-                               comp_ts=available_timeseries, 
-                               ffts_to_display=ffts_to_display, 
+
+update_ts = CustomJS(args=dict(timeseries_to_display=timeseries_to_display,
+                               comp_ts=available_timeseries,
+                               ffts_to_display=ffts_to_display,
                                comp_fft=available_ffts,
                                ICApaths=available_ICAmaps,
-                               ICAmap_to_display=ICAmap_to_display), 
+                               ICAmap_to_display=ICAmap_to_display),
        code="""
          var c            = cb_obj.get('selected')['1d'].indices
-         
+
          var data2disp_ts = timeseries_to_display.get('data')
          x2disp_ts        = data2disp_ts['x'];
          y2disp_ts        = data2disp_ts['y'];
@@ -289,7 +290,7 @@ update_ts = CustomJS(args=dict(timeseries_to_display=timeseries_to_display,
          for (i = 0; i < x2disp_ts.length; i++) {
             y2disp_ts[i]  = ts_y[c][i];
          }
-         
+
          var data2disp_fft = ffts_to_display.get('data');
          x2disp_fft        = data2disp_fft['x'];
          y2disp_fft        = data2disp_fft['y'];
@@ -299,13 +300,13 @@ update_ts = CustomJS(args=dict(timeseries_to_display=timeseries_to_display,
          for (i=0; i < x2disp_fft.length; i++) {
              y2disp_fft[i] = fft_y[c][i]
          }
-         
+
          var ICA2display  = ICAmap_to_display.get('data');
          url2display      = ICA2display['url'];
          var availICAurls = ICApaths.get('data');
          allICAurls       = availICAurls['urls'];
          url2display[0]   = allICAurls[c];
-         
+
          ICAmap_to_display.trigger('change');
          timeseries_to_display.trigger('change');
          ffts_to_display.trigger('change');
@@ -313,13 +314,13 @@ update_ts = CustomJS(args=dict(timeseries_to_display=timeseries_to_display,
 
 # Additional Code to link with time series
 kappa_taptool          = sp_kappa.select(type=TapTool)
-kappa_taptool.callback = update_ts 
+kappa_taptool.callback = update_ts
 rho_taptool            = sp_rho.select(type=TapTool)
-rho_taptool.callback   = update_ts 
+rho_taptool.callback   = update_ts
 var_taptool            = sp_var.select(type=TapTool)
-var_taptool.callback   = update_ts 
+var_taptool.callback   = update_ts
 ratio_taptool          = sp_ratio.select(type=TapTool)
-ratio_taptool.callback = update_ts 
+ratio_taptool.callback = update_ts
 kvr_taptool            = sp_kvr.select(type=TapTool)
 kvr_taptool.callback   = update_ts
 
@@ -328,11 +329,11 @@ kvr_taptool.callback   = update_ts
 
 # ==============================================================================
 #                       GRAPH   LAYOUT
-top_left  = hplot(sp_tabs_kappa, sp_tabs_rho)
-top_right = hplot(sp_tabs_var, sp_tabs_left)
-top       = hplot(top_left, top_right)
-middle    = hplot(sp_ts, sp_fft)
-pl        = vplot(comp_table_DTABLE,top, middle,ICAmapFigure)
-p         = hplot(pl)
+top_left  = row(sp_tabs_kappa, sp_tabs_rho)
+top_right = row(sp_tabs_var, sp_tabs_left)
+top       = row(top_left, top_right)
+middle    = row(sp_ts, sp_fft)
+pl        = column(comp_table_DTABLE,top, middle,ICAmapFigure)
+p         = row(pl)
 show(p)
 # ==============================================================================
